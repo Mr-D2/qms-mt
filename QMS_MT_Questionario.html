@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>QMS-MT — Questionario Metacognitivo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F4F2EE;--surface:#FFFFFF;--ink:#1A1A2E;--ink-soft:#5A5A72;--accent:#2B4590;--accent2:#E8A020;--ok:#1D7A5F;--radius:18px;--shadow:0 4px 24px rgba(26,26,46,.10)}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);min-height:100vh;color:var(--ink);overflow-x:hidden}
+.screen{display:none;min-height:100vh;flex-direction:column}.screen.active{display:flex}
+/* TOPBAR */
+.topbar{background:var(--accent);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(43,69,144,.3)}
+.topbar-logo{font-family:'DM Serif Display',serif;color:#fff;font-size:1.15rem;position:absolute;left:50%;transform:translateX(-50%)}
+.topbar-logo span{color:var(--accent2)}
+.topbar-btn{background:transparent;border:none;color:rgba(255,255,255,.82);font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:500;cursor:pointer;padding:4px 0;display:flex;align-items:center;gap:5px;min-width:60px}
+.topbar-btn.right{justify-content:flex-end}
+.topbar-btn:active{opacity:.6}
+/* LANDING */
+#screen-start{background:linear-gradient(160deg,#0d1b40 0%,#1a2d6e 45%,#2B4590 100%);align-items:stretch;justify-content:space-between;overflow:hidden;position:relative}
+.start-circles{position:absolute;inset:0;pointer-events:none}
+.start-circles span{position:absolute;border-radius:50%;border:1px solid rgba(255,255,255,.07)}
+.start-top{padding:56px 32px 0;display:flex;flex-direction:column;align-items:flex-start;flex:1;position:relative;z-index:1}
+.start-eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(232,160,32,.9);margin-bottom:20px}
+.start-title{font-family:'DM Serif Display',serif;font-size:3rem;color:#fff;line-height:1.05;margin-bottom:10px}
+.start-sub{font-size:1rem;color:rgba(255,255,255,.65);line-height:1.5;margin-bottom:6px}
+.start-meta{font-size:.78rem;color:rgba(255,255,255,.4);font-style:italic;margin-bottom:48px}
+.start-pills{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:auto}
+.start-pill{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:50px;padding:7px 14px;font-size:.78rem;color:rgba(255,255,255,.75);font-weight:500}
+.start-bottom{padding:32px 24px 44px;position:relative;z-index:1;display:flex;flex-direction:column;gap:12px}
+.btn-start-primary{background:#fff;color:var(--accent);border:none;border-radius:16px;font-family:'DM Sans',sans-serif;font-size:1.1rem;font-weight:700;padding:20px;cursor:pointer;box-shadow:0 8px 28px rgba(0,0,0,.25);transition:transform .15s}
+.btn-start-primary:active{transform:scale(.98)}
+.btn-start-resume{background:rgba(255,255,255,.12);color:#fff;border:1.5px solid rgba(255,255,255,.3);border-radius:16px;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:600;padding:18px;cursor:pointer;backdrop-filter:blur(8px);transition:all .15s}
+.btn-start-resume:active{background:rgba(255,255,255,.18)}
+.start-copyright{text-align:center;font-size:.7rem;color:rgba(255,255,255,.3);margin-top:4px}
+/* INTRO */
+.intro-body{padding:32px 24px 24px;flex:1;display:flex;flex-direction:column}
+.intro-badge{display:inline-block;background:#EEF2FF;color:var(--accent);font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:5px 12px;border-radius:20px;margin-bottom:20px}
+.intro-title{font-family:'DM Serif Display',serif;font-size:1.9rem;color:var(--ink);line-height:1.15;margin-bottom:4px}
+.intro-subtitle{font-size:.88rem;color:var(--ink-soft);font-style:italic;margin-bottom:28px}
+.intro-divider{height:2px;background:linear-gradient(90deg,var(--accent),transparent);border:none;margin-bottom:28px;border-radius:2px}
+.intro-card{background:var(--surface);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);flex:1;margin-bottom:24px}
+.intro-card p{font-size:1rem;line-height:1.75;color:var(--ink);margin-bottom:14px}
+.intro-card p:last-of-type{margin-bottom:0}
+.intro-card .hl{font-weight:600;color:var(--accent)}
+.intro-card .cura{font-weight:600;color:var(--accent);margin-top:18px!important;border-top:1px solid #E8E5E0;padding-top:18px}
+.intro-scale{display:flex;gap:10px;margin-top:20px;justify-content:center}
+.scale-item{flex:1;text-align:center;background:var(--bg);border-radius:12px;padding:12px 8px;border:2px solid #D8D6D0}
+.scale-num{font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--accent);display:block;line-height:1}
+.scale-lbl{font-size:.7rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);display:block;margin-top:4px}
+/* INFO */
+.info-body{padding:28px 24px;flex:1}
+.section-title{font-family:'DM Serif Display',serif;font-size:1.5rem;margin-bottom:6px}
+.section-desc{color:var(--ink-soft);font-size:.88rem;margin-bottom:28px}
+.field{margin-bottom:20px}
+.field label{display:block;font-size:.78rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:8px}
+.field input,.field select{width:100%;border:2px solid #D8D6D0;border-radius:12px;padding:16px 18px;font-family:'DM Sans',sans-serif;font-size:1.05rem;color:var(--ink);background:var(--surface);appearance:none;-webkit-appearance:none;transition:border-color .2s;outline:none}
+.field input:focus,.field select:focus{border-color:var(--accent)}
+.field .select-wrap{position:relative}
+.field .select-wrap::after{content:'▾';position:absolute;right:18px;top:50%;transform:translateY(-50%);color:var(--ink-soft);pointer-events:none}
+/* BUTTONS */
+.btn-full{width:calc(100% - 48px);margin:0 24px;border:none;border-radius:16px;font-family:'DM Sans',sans-serif;font-size:1.1rem;font-weight:600;padding:20px;cursor:pointer;transition:transform .15s}
+.btn-full:active{transform:scale(.98)}
+.btn-full.primary{background:var(--accent);color:#fff;box-shadow:0 6px 20px rgba(43,69,144,.3)}
+.btn-full.primary:disabled{opacity:.4;pointer-events:none}
+.btn-full.ok{background:var(--ok);color:#fff}
+.btn-full.ghost{background:transparent;color:var(--ink-soft);font-size:.9rem;padding:14px}
+.spacer{height:24px}
+/* QUIZ */
+#screen-quiz{padding-bottom:40px}
+.progress-wrap{background:#E0DDD8;height:6px;position:sticky;top:52px;z-index:90}
+.progress-bar{height:100%;background:linear-gradient(90deg,var(--accent),#5A7FD6);transition:width .4s ease;border-radius:0 3px 3px 0}
+.progress-label{text-align:center;padding:12px 24px 0;font-size:.78rem;color:var(--ink-soft);font-weight:600;letter-spacing:.05em}
+.question-card{margin:20px 20px 0;background:var(--surface);border-radius:var(--radius);padding:28px 24px;box-shadow:var(--shadow);min-height:180px}
+.question-num{font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+.question-text{font-size:1.08rem;line-height:1.65;color:var(--ink)}
+.options-wrap{display:flex;gap:14px;margin:24px 20px 0}
+.opt-btn{flex:1;border:2.5px solid #D8D6D0;border-radius:16px;background:var(--surface);padding:0;cursor:pointer;transition:all .18s;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100px;gap:8px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.opt-btn:active{transform:scale(.96)}
+.opt-num{font-family:'DM Serif Display',serif;font-size:2.2rem;color:var(--ink-soft);transition:color .18s;line-height:1}
+.opt-label{font-size:.72rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);transition:color .18s}
+.opt-btn[data-val="1"].selected{border-color:#2B4590;background:#EEF2FF}
+.opt-btn[data-val="1"].selected .opt-num,.opt-btn[data-val="1"].selected .opt-label{color:#2B4590}
+.opt-btn[data-val="2"].selected{border-color:#3A6B8A;background:#EBF4F8}
+.opt-btn[data-val="2"].selected .opt-num,.opt-btn[data-val="2"].selected .opt-label{color:#3A6B8A}
+.opt-btn[data-val="3"].selected{border-color:#1D7A5F;background:#E6F4F0}
+.opt-btn[data-val="3"].selected .opt-num,.opt-btn[data-val="3"].selected .opt-label{color:#1D7A5F}
+.nav-row{display:flex;gap:12px;margin:20px 20px 0;align-items:center}
+.btn-nav{border:2px solid #D8D6D0;background:var(--surface);border-radius:14px;font-family:'DM Sans',sans-serif;font-size:.92rem;font-weight:600;padding:16px 18px;cursor:pointer;color:var(--ink);transition:all .15s}
+.btn-nav:disabled{opacity:.3;pointer-events:none}
+.btn-nav.next{flex:1;background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 4px 16px rgba(43,69,144,.25)}
+.btn-nav.submit-btn{flex:1;background:var(--ok);color:#fff;border-color:var(--ok)}
+.btn-nav:active{transform:scale(.97)}
+.skip-note{text-align:center;padding:12px 20px 0;font-size:.78rem;color:var(--ink-soft)}
+/* PAUSA */
+#screen-pause{padding:0 0 40px}
+.pause-body{padding:24px;flex:1}
+.pause-hero{background:linear-gradient(135deg,var(--accent),#1a2d6e);border-radius:var(--radius);padding:24px;margin-bottom:20px;text-align:center}
+.pause-hero-icon{font-size:2.2rem;margin-bottom:10px}
+.pause-hero h2{font-family:'DM Serif Display',serif;font-size:1.4rem;color:#fff;margin-bottom:6px}
+.pause-hero p{font-size:.85rem;color:rgba(255,255,255,.72);line-height:1.5}
+.pause-section{background:var(--surface);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-bottom:14px}
+.pause-section-title{font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:14px}
+.pause-progress{display:flex;align-items:center;gap:14px}
+.pause-progress-bar{flex:1;height:8px;background:#E0DDD8;border-radius:4px;overflow:hidden}
+.pause-progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),#5A7FD6);border-radius:4px;transition:width .4s}
+.pause-progress-label{font-size:.88rem;font-weight:600;color:var(--accent);white-space:nowrap}
+.pin-display{background:var(--accent);border-radius:14px;padding:24px 16px;text-align:center}
+.pin-label{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.65);margin-bottom:12px}
+.pin-value{font-family:'DM Serif Display',serif;font-size:3.5rem;color:#fff;letter-spacing:.28em;line-height:1;margin-bottom:10px}
+.pin-note{font-size:.82rem;color:rgba(255,255,255,.65);line-height:1.4}
+.pin-note strong{color:#fff}
+/* RIPRENDI */
+#screen-resume{padding:0 0 40px}
+.resume-body{padding:28px 24px;flex:1}
+.code-input{width:100%;border:2px solid #D8D6D0;border-radius:12px;padding:16px 18px;font-family:'DM Serif Display',serif;font-size:2rem;letter-spacing:.2em;color:var(--ink);background:var(--surface);outline:none;transition:border-color .2s;text-align:center;text-transform:uppercase}
+.code-input:focus{border-color:var(--accent)}
+.code-error{background:#FEF2F2;border:1.5px solid #FCA5A5;border-radius:10px;padding:12px 16px;font-size:.85rem;color:#991B1B;margin-top:12px;display:none}
+.code-error.show{display:block}
+/* INVIO / GRAZIE */
+#screen-sending{align-items:center;justify-content:center;text-align:center;padding:40px 24px}
+.spinner{width:56px;height:56px;border:5px solid #D8D6D0;border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 28px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.sending-title{font-family:'DM Serif Display',serif;font-size:1.6rem;margin-bottom:8px}
+.sending-sub{color:var(--ink-soft);font-size:.9rem}
+#screen-thanks{align-items:center;justify-content:center;padding:40px 24px;text-align:center}
+.checkmark{width:88px;height:88px;background:var(--ok);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 28px;box-shadow:0 8px 28px rgba(29,122,95,.3);animation:pop .4s ease}
+@keyframes pop{0%{transform:scale(0)}80%{transform:scale(1.08)}100%{transform:scale(1)}}
+.thanks-title{font-family:'DM Serif Display',serif;font-size:2rem;margin-bottom:10px}
+.thanks-sub{color:var(--ink-soft);font-size:.95rem;margin-bottom:6px}
+.thanks-warn{background:#FFF8E6;border:1.5px solid var(--accent2);border-radius:12px;padding:14px 18px;margin:16px 0 28px;font-size:.85rem;color:#8B5E00;display:none}
+.thanks-warn.show{display:block}
+.btn-reset{background:#E8E5E0;color:var(--ink);border:none;border-radius:50px;font-family:'DM Sans',sans-serif;font-size:.95rem;font-weight:600;padding:16px 40px;cursor:pointer;margin-top:16px}
+.btn-reset:active{transform:scale(.97)}
+/* ADMIN */
+#screen-admin{background:#1A1A2E;color:#E0E0E0;padding:24px;min-height:100vh}
+.admin-title{font-family:'DM Serif Display',serif;font-size:1.6rem;color:#fff;margin-bottom:20px}
+.admin-stat{background:#2A2A42;border-radius:12px;padding:16px;margin-bottom:12px}
+.admin-stat-label{font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:#888;margin-bottom:4px}
+.admin-stat-val{font-size:1.8rem;font-weight:600;color:#fff}
+.btn-admin{background:var(--accent);color:#fff;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:600;padding:14px 24px;cursor:pointer;margin:6px 6px 6px 0}
+.admin-webhook{background:#2A2A42;border-radius:12px;padding:16px;margin-top:16px}
+.admin-webhook label{font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:#888;display:block;margin-bottom:8px}
+.admin-webhook input{width:100%;background:#1A1A2E;border:1.5px solid #444;border-radius:8px;padding:12px;font-size:.82rem;color:#E0E0E0;font-family:monospace;outline:none}
+.admin-webhook input:focus{border-color:var(--accent)}
+/* STATUS TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#1A1A2E;color:#fff;padding:12px 20px;border-radius:50px;font-size:.85rem;font-weight:500;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;z-index:999}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.ok{background:var(--ok)}
+.toast.err{background:#C0392B}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<!-- ══ LANDING ══════════════════════════════════════════════════ -->
+<div class="screen active" id="screen-start">
+  <div class="start-circles">
+    <span style="width:420px;height:420px;top:-120px;right:-140px"></span>
+    <span style="width:280px;height:280px;bottom:80px;left:-100px"></span>
+    <span style="width:160px;height:160px;top:42%;left:62%"></span>
+  </div>
+  <div class="start-top">
+    <p class="start-eyebrow">Cornoldi, De Beni &amp; Gruppo MT &middot; Erickson 2015</p>
+    <h1 class="start-title">Questionario<br>QMS-MT</h1>
+    <p class="start-sub">Questionario Metacognitivo<br>sul Metodo di Studio</p>
+    <p class="start-meta">163 affermazioni &middot; circa 20 minuti</p>
+    <div class="start-pills">
+      <span class="start-pill">&#9679; Scuola secondaria I grado</span>
+      <span class="start-pill">&#9679; Uso individuale</span>
+      <span class="start-pill">&#9679; Risposte in cloud</span>
+    </div>
+  </div>
+  <div class="start-bottom">
+    <button class="btn-start-primary" onclick="goTo('intro')">Inizia il questionario &rsaquo;</button>
+    <button class="btn-start-resume" onclick="goTo('resume')">&#9654; Riprendi da dove avevo lasciato</button>
+    <p class="start-copyright">&copy; 2015, Cornoldi, De Beni e Gruppo MT, <em>Imparare a studiare</em>, Erickson</p>
+  </div>
+</div>
+
+<!-- ══ ISTRUZIONI ═══════════════════════════════════════════════ -->
+<div class="screen" id="screen-intro">
+  <div class="topbar">
+    <button class="topbar-btn" onclick="goTo('start')">&larr;</button>
+    <div class="topbar-logo">QMS<span>&middot;</span>MT</div>
+    <span style="min-width:60px"></span>
+  </div>
+  <div class="intro-body">
+    <span class="intro-badge">Istruzioni</span>
+    <h2 class="intro-title">Questionario QMS</h2>
+    <p class="intro-subtitle">Questionario metacognitivo sul metodo di studio</p>
+    <hr class="intro-divider">
+    <div class="intro-card">
+      <p>Nelle pagine seguenti ci sono alcune affermazioni sulla scuola e sullo studio.</p>
+      <p>Esprimi il tuo grado di accordo con le affermazioni che ti vengono presentate, segnando se queste si adattano al tuo caso <span class="hl">&laquo;Poco&raquo;</span>, <span class="hl">&laquo;Abbastanza&raquo;</span> o <span class="hl">&laquo;Molto&raquo;</span>.</p>
+      <p>Non esistono risposte giuste o sbagliate, l&rsquo;importante &egrave; che tu esprima il tuo pensiero con sincerit&agrave;.</p>
+      <p>Segna con una crocetta la casella corrispondente a ciascuna espressione.</p>
+      <p class="cura">Lavora con cura e non saltare nessuna espressione.</p>
+      <div class="intro-scale">
+        <div class="scale-item"><span class="scale-num">1</span><span class="scale-lbl">Poco</span></div>
+        <div class="scale-item"><span class="scale-num">2</span><span class="scale-lbl">Abbastanza</span></div>
+        <div class="scale-item"><span class="scale-num">3</span><span class="scale-lbl">Molto</span></div>
+      </div>
+    </div>
+    <button class="btn-full primary" onclick="goTo('info')">Inserisci i tuoi dati &rsaquo;</button>
+    <div class="spacer"></div>
+  </div>
+</div>
+
+<!-- ══ ANAGRAFICA ════════════════════════════════════════════════ -->
+<div class="screen" id="screen-info">
+  <div class="topbar">
+    <button class="topbar-btn" onclick="goTo('intro')">&larr;</button>
+    <div class="topbar-logo">QMS<span>&middot;</span>MT</div>
+    <span style="min-width:60px"></span>
+  </div>
+  <div class="info-body">
+    <h2 class="section-title">Chi sei?</h2>
+    <p class="section-desc" id="section-desc-info">Inserisci i tuoi dati prima di iniziare.</p>
+    <div class="field"><label>Nome</label><input type="text" id="f-nome" placeholder="es. Mario" autocomplete="off" autocorrect="off" spellcheck="false"></div>
+    <div class="field"><label>Cognome</label><input type="text" id="f-cognome" placeholder="es. Rossi" autocomplete="off" autocorrect="off" spellcheck="false"></div>
+    <div class="field"><label>Classe</label><div class="select-wrap"><select id="f-classe"><option value="">— seleziona —</option><option value="6">6&ordf;</option><option value="7">7&ordf;</option><option value="8">8&ordf;</option></select></div></div>
+    <div class="field"><label>Sede</label><div class="select-wrap"><select id="f-sede"><option value="">— seleziona —</option><option value="CV">CV</option><option value="CE">CE</option></select></div></div>
+    <div class="field"><label>Anno scolastico</label><div class="select-wrap"><select id="f-anno"><option value="2025/26">2025/26</option><option value="2026/27">2026/27</option><option value="2027/28">2027/28</option></select></div></div>
+  </div>
+  <button class="btn-full primary" id="btnStartQuiz" onclick="startQuiz()" disabled>Inizia il questionario &rsaquo;</button>
+  <div class="spacer"></div>
+</div>
+
+<!-- ══ QUIZ ══════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-quiz">
+  <div class="topbar">
+    <button class="topbar-btn" onclick="backToInfo()">&larr; Dati</button>
+    <div class="topbar-logo">QMS<span>&middot;</span>MT</div>
+    <button class="topbar-btn right" onclick="showPause()">&#9646;&#9646; Pausa</button>
+  </div>
+  <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+  <p class="progress-label" id="progressLabel"></p>
+  <div class="question-card">
+    <p class="question-num" id="qNum"></p>
+    <p class="question-text" id="qText"></p>
+  </div>
+  <div class="options-wrap">
+    <button class="opt-btn" data-val="1" onclick="selectOpt(1)"><span class="opt-num">1</span><span class="opt-label">Poco</span></button>
+    <button class="opt-btn" data-val="2" onclick="selectOpt(2)"><span class="opt-num">2</span><span class="opt-label">Abbastanza</span></button>
+    <button class="opt-btn" data-val="3" onclick="selectOpt(3)"><span class="opt-num">3</span><span class="opt-label">Molto</span></button>
+  </div>
+  <div class="nav-row">
+    <button class="btn-nav" id="btnBack" onclick="navBack()">&lsaquo;</button>
+    <button class="btn-nav next" id="btnNext" onclick="navNext()">Avanti &rsaquo;</button>
+  </div>
+  <p class="skip-note" id="skipNote"></p>
+</div>
+
+<!-- ══ PAUSA ══════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-pause">
+  <div class="topbar">
+    <button class="topbar-btn" onclick="goTo('quiz')">&larr; Torna</button>
+    <div class="topbar-logo">QMS<span>&middot;</span>MT</div>
+    <span style="min-width:60px"></span>
+  </div>
+  <div class="pause-body">
+    <div class="pause-hero">
+      <div class="pause-hero-icon">&#9646;&#9646;</div>
+      <h2>Questionario in pausa</h2>
+      <p>Il tuo progresso &egrave; salvato. Usa il codice per riprendere da qualsiasi tablet.</p>
+    </div>
+    <div class="pause-section">
+      <div class="pause-section-title">Avanzamento</div>
+      <div class="pause-progress">
+        <div class="pause-progress-bar"><div class="pause-progress-fill" id="pauseProgressFill"></div></div>
+        <span class="pause-progress-label" id="pauseProgressLabel"></span>
+      </div>
+      <p style="font-size:.8rem;color:var(--ink-soft);margin-top:10px" id="pauseStudentLabel"></p>
+    </div>
+    <div class="pause-section">
+      <div class="pause-section-title">Il tuo codice di ripresa</div>
+      <div class="pin-display">
+        <div class="pin-label">Scrivi questo codice</div>
+        <div class="pin-value" id="pinValue">------</div>
+        <div class="pin-note">Solo 6 caratteri &mdash; funziona su <strong>qualsiasi tablet</strong></div>
+      </div>
+    </div>
+    <button class="btn-full ghost" onclick="goTo('quiz')" style="margin-top:4px">&larr; Riprendi ora</button>
+    <div class="spacer"></div>
+  </div>
+</div>
+
+<!-- ══ RIPRENDI ═══════════════════════════════════════════════════ -->
+<div class="screen" id="screen-resume">
+  <div class="topbar">
+    <button class="topbar-btn" onclick="goTo('start')">&larr;</button>
+    <div class="topbar-logo">QMS<span>&middot;</span>MT</div>
+    <span style="min-width:60px"></span>
+  </div>
+  <div class="resume-body">
+    <h2 class="section-title">Riprendi</h2>
+    <p class="section-desc">Inserisci il codice a 6 caratteri che hai annotato.</p>
+    <div class="field" style="margin-top:16px">
+      <label>Codice di ripresa</label>
+      <input class="code-input" type="text" id="resumeCodeInput" maxlength="6" placeholder="A B C 1 2 3" autocomplete="off" autocorrect="off" spellcheck="false">
+    </div>
+    <div class="code-error" id="resumeError">Codice non trovato. Controlla le lettere e riprova.</div>
+  </div>
+  <button class="btn-full primary" onclick="resumeFromCode()">Riprendi &rsaquo;</button>
+  <button class="btn-full ghost" onclick="goTo('start')" style="margin-top:8px">&larr; Annulla</button>
+  <div class="spacer"></div>
+</div>
+
+<!-- ══ INVIO ═══════════════════════════════════════════════════ -->
+<div class="screen" id="screen-sending">
+  <div class="spinner"></div>
+  <h2 class="sending-title">Invio in corso&hellip;</h2>
+  <p class="sending-sub">Le risposte vengono salvate.<br>Non chiudere questa finestra.</p>
+</div>
+
+<!-- ══ GRAZIE ══════════════════════════════════════════════════ -->
+<div class="screen" id="screen-thanks">
+  <div class="checkmark">
+    <svg width="42" height="42" viewBox="0 0 42 42" fill="none">
+      <path d="M9 21l9 9 15-15" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  <h2 class="thanks-title">Grazie!</h2>
+  <p class="thanks-sub" id="thanksName"></p>
+  <p class="thanks-sub">Le tue risposte sono state registrate.</p>
+  <div class="thanks-warn" id="thanksWarn"></div>
+  <button class="btn-reset" onclick="resetForm()">Nuovo questionario</button>
+</div>
+
+<!-- ══ ADMIN ════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-admin">
+  <h2 class="admin-title">&#9881; Pannello Docente</h2>
+  <div class="admin-stat"><div class="admin-stat-label">Risposte nel database</div><div class="admin-stat-val" id="adminResponseCount">—</div></div>
+  <div class="admin-stat"><div class="admin-stat-label">Sessioni aperte (pausa)</div><div class="admin-stat-val" id="adminSessionCount">—</div></div>
+  <div class="admin-webhook">
+    <label>Supabase Project URL</label>
+    <input type="text" id="adminSbUrl" placeholder="https://xxxx.supabase.co">
+  </div>
+  <div class="admin-webhook" style="margin-top:8px">
+    <label>Supabase Anon Key</label>
+    <input type="text" id="adminSbKey" placeholder="eyJ...">
+    <button class="btn-admin" onclick="saveSupabaseConfig()" style="margin-top:10px">Salva configurazione</button>
+  </div>
+  <div style="margin-top:16px">
+    <button class="btn-admin" onclick="adminLoadStats()">&#8635; Aggiorna statistiche</button>
+    <button class="btn-admin" onclick="adminExportCSV()">&#8595; Esporta CSV</button>
+  </div>
+  <br>
+  <button class="btn-admin" onclick="goTo('start')">&larr; Torna al questionario</button>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// CONFIGURAZIONE SUPABASE
+// Questi valori vengono impostati dal pannello #admin la prima
+// volta e salvati nel browser. In alternativa incollarli qui:
+// ═══════════════════════════════════════════════════════════════
+const CONFIG = {
+  supabaseUrl: 'https://kutlkzvymtnommxgqpgw.supabase.co',
+  supabaseKey: 'sb_publishable_U8-xDR2R8xuMl7Y-HAm0Kg_D7w7GoKd',
+};
+
+function getSB() {
+  return {
+    url: localStorage.getItem('qms_sb_url') || CONFIG.supabaseUrl,
+    key: localStorage.getItem('qms_sb_key') || CONFIG.supabaseKey,
+  };
+}
+
+async function sbFetch(table, method='GET', body=null, filter='') {
+  const sb = getSB();
+  if (!sb.url || !sb.key) throw new Error('Supabase non configurato');
+  const headers = {
+    'apikey': sb.key,
+    'Authorization': 'Bearer ' + sb.key,
+    'Content-Type': 'application/json',
+  };
+  if (method === 'POST') headers['Prefer'] = 'return=representation';
+  const opts = { method, headers };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(sb.url + '/rest/v1/' + table + (filter ? '?' + filter : ''), opts);
+  if (!r.ok) {
+    const txt = await r.text();
+    throw new Error(txt);
+  }
+  const ct = r.headers.get('content-type') || '';
+  if (ct.includes('json')) return r.json();
+  return null;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ITEMS
+// ═══════════════════════════════════════════════════════════════
+const ITEMS = [
+"Se sono preparato mi sento tranquillo nell'affrontare un compito o un'interrogazione.",
+"Mi capita di fare esercizi supplementari ad essere preparato.",
+"Spesso durante lo studio mi trovo a pensare a cose che non c'entrano.",
+"Quando l'insegnante mi assegna dei compiti, mi applico solo se l'argomento mi interessa.",
+"Per imparare è necessario frequentare la scuola.",
+"Quando studio cerco di ripetere parola per parola quello che è scritto nel testo.",
+"Per decidere cosa sottolineare, tengo presente il titolo, il genere e lo scopo della lettura.",
+"Sono pronto in anticipo per una verifica rispetto alla data fissata.",
+"Affronto lo studio di tutte le materie allo stesso modo.",
+"Quando incontro un termine poco chiaro, uso spesso il vocabolario.",
+"Quando l'insegnante mi fa una domanda dal posto mi sento agitato.",
+"Cerco di prevedere il tipo di compito che mi aspetta.",
+"Per me la scuola non ha particolare importanza.",
+"Quando leggo a voce alta mi sento imbarazzato.",
+"Quando studio, mi accorgo di tutto quello che mi succede intorno.",
+"Prima di un'interrogazione o una verifica riesco a organizzarmi il materiale senza bisogno di andare a rileggermi di nuovo tutto.",
+"Preferisco alternare allo studio piacevoli pause.",
+"Vado a scuola malvolentieri.",
+"Mentre l'insegnante parla, mi faccio delle annotazioni per ricordare e capire meglio.",
+"Spesso scopro con sorpresa che un argomento di studio era più difficile di quanto mi sarei aspettato.",
+"Per studiare può essere utile annotare a margine della pagina le parole fondamentali.",
+"Anche se non ho capito bene un argomento, tento comunque di fare gli esercizi assegnati.",
+"Durante la lettura, non presto troppa attenzione alle illustrazioni.",
+"Preferisco continuare il discorso di un compagno anziché iniziarlo io stesso.",
+"Penso che la scuola sia un momento importante e formativo per la mia vita futura.",
+"Mi capita di trovarmi con i compiti da fare dopo cena.",
+"Preferisco affrontare da solo le situazioni molto difficili.",
+"Se certi esercizi non mi riescono subito, li lascio perdere.",
+"Quando studio mi preoccupo sempre di essere sicuro di capire quello che leggo.",
+"Mi piace studiare guardando la televisione.",
+"Quando studio, inizio con le materie che mi serviranno di più il giorno dopo.",
+"Non capisco perché devo studiare certe materie.",
+"Studio per ottenere il massimo dei voti.",
+"Mentre ascolto l'insegnante, cerco di prevedere quello che dirà in seguito.",
+"Ho l'abitudine di controllare se veramente ho capito ciò che ho studiato, ponendomi delle domande o facendo esercizi.",
+"Studiando valuto se per imparare quell'argomento ci metterò tanto o poco.",
+"Sono sicuro del buon esito dei miei esami.",
+"Quando leggo non ritengo sia particolarmente importante riconoscere quali erano le idee principali che l'autore voleva esprimere.",
+"Se devo fare una ricerca utilizzo anche fotografie, o videocassette, o altro materiale.",
+"Leggendo un racconto mi capita di confondere i personaggi.",
+"Sto attento alle osservazioni degli insegnanti quando interrogano i miei compagni.",
+"Prima faccio le cose che mi piacciono, poi i compiti.",
+"Per riuscire nella vita è necessario un titolo di studio.",
+"Se ho molto da studiare riesco a rinunciare a parte del tempo che di solito dedico agli amici.",
+"Se sono affaticato capisco che è meglio interrompere lo studio.",
+"È importante studiare perché lo vogliono i miei genitori.",
+"Quando leggo cerco di prevedere quello che sarà scritto dopo.",
+"Spesso penso con preoccupazione che potrei far male in un'interrogazione.",
+"Esiste un solo modo valido per leggere e studiare un capitolo.",
+"In un libro di testo trovo utile leggere le didascalie delle figure.",
+"Quando leggo un brano sono in grado di distinguere le idee più importanti da quelle meno importanti.",
+"Mi capita di pensare che la scuola è poco interessante.",
+"Mentre ascolto una lezione mi vengono in mente delle relazioni con altri argomenti studiati.",
+"Non riesco mai a capire cosa si aspettano da me i professori.",
+"Quando devo prepararmi per un'interrogazione impegnativa, tendo a rimandare il più possibile il momento dello studio.",
+"Quando devo fare un compito impegnativo, ho bisogno che qualcuno mi aiuti.",
+"Se mi viene richiesto qualcosa, costi quel che costi lo voglio fare.",
+"Quando studio allontano le cose che potrebbero distrarmi.",
+"Preferisco studiare senza interrompermi per consultare enciclopedie o dizionari.",
+"Cerco di adattare il mio modo di studiare al tempo che ho a disposizione.",
+"Quando inizio una verifica l'agitazione mi rende le idee confuse e faccio fatica a capire cosa devo fare.",
+"Se devo affrontare per la prima volta una prova, cerco di informarmi su come si svolge.",
+"Trovo utile l'uso del registratore per alcune attività di studio.",
+"Durante lo studio personale dedico sempre una parte del tempo a verificare quanto so.",
+"Seguo con attenzione le trasmissioni televisive che trattano argomenti che sto studiando.",
+"Davanti all'insegnante mi confondo così tanto da non riuscire a rispondere anche quando conosco la risposta.",
+"Quando preparo un compito o un'interrogazione cerco di prevedere quali domande potrebbe farmi l'insegnante.",
+"Tutto ciò che imparo a scuola aumenta la mia capacità di pensare.",
+"All'inizio del pomeriggio passo in rassegna tutte le cose che devo fare.",
+"Mi capita di riferire all'insegnante che non ho saputo fare gli esercizi assegnati.",
+"Durante lo studio cerco di usare parole mie nel ripetere il contenuto di un testo.",
+"Uso lo stesso sistema di studio per tutte le materie.",
+"Mentre ascolto una spiegazione in classe, mi capita di pensare anche ad altre cose.",
+"Mi preparo sempre alla stessa maniera perché penso non faccia differenza se l'interrogazione sarà scritta o orale.",
+"Di solito so organizzare il tempo di studio così da farci rientrare anche i miei hobby.",
+"Quando devo uscire ad essere interrogato mi sento molto nervoso.",
+"Quando studio per un compito o un'interrogazione tengo presente ciò che l'insegnante ritiene importante.",
+"Durante lo studio faccio fatica ad accorgermi che un concetto mi è poco chiaro.",
+"Mi dispiace lasciare a metà un'attività di studio.",
+"So utilizzare diversi tipi di promemoria per facilitarmi il ricordo a distanza di tempo.",
+"Decido come studiare a seconda del compito.",
+"Sono soddisfatto anche se riesco a raggiungere un risultato appena sufficiente.",
+"Sono sensibile alla valutazione dell'insegnante.",
+"Sono felice se per qualche ragione perdo un giorno di scuola.",
+"Anche quando abbiamo studiato insieme, sono gli altri che rispondono per primi.",
+"Faccio molta attenzione quando i professori interrogano, per capire cosa pretendono.",
+"In caso di richiamo personale in classe o di una nota negativa provo una vergogna tremenda.",
+"Quando faccio i compiti o studio penso al modo migliore per affrontare queste attività.",
+"Mi piace venire a scuola un po' prima per parlare o giocare con i compagni.",
+"Fare la spia può essere utile al buon funzionamento della scuola.",
+"Leggendo un racconto mi piace immaginarmi le scene o le facce dei personaggi.",
+"Mentre l'insegnante spiega mi accorgo subito se qualcosa non mi è chiaro.",
+"Mi fa piacere che gli insegnanti parlino con noi anche di argomenti personali.",
+"Mi capita di cercare per mio interesse personale altre notizie riguardanti un argomento spiegato in classe.",
+"Quando studio molto raggiungo buoni risultati.",
+"Prima di affrontare un compito difficile, raccolgo le informazioni necessarie.",
+"Quando racconto qualcosa mi piace soffermarmi sui particolari.",
+"Mi capita di trovare improvvisamente la soluzione di un problema, magari quando non ci sto pensando.",
+"Riesco subito a capire se un compito è facile o difficile.",
+"Mentre faccio degli esercizi evito di controllare se sto procedendo bene.",
+"Cerco sempre di avere un posto in classe che mi aiuti a seguire la spiegazione.",
+"Faccio fatica a chiedere chiarimenti ad alcuni miei insegnanti.",
+"Conosco bene tutti i miei compagni e anche molti ragazzi delle altre classi.",
+"Quando riesco male in un compito scritto mi viene spesso da pensare che, anche se mi fossi impegnato maggiormente, non avrei potuto fare meglio.",
+"Non riesco a capire certi miei errori.",
+"Nello studio della lingua straniera mi trovo in difficoltà quando non capisco le regole da seguire.",
+"Se un testo mette in gioco varie questioni, ne prendo in considerazione una alla volta.",
+"Se mi va male un compito cerco di individuarne i motivi.",
+"Riesco meglio nelle materie in cui gli insegnanti sono simpatici.",
+"Trovo che studiare con un compagno costituisca una perdita di tempo.",
+"Nelle interrogazioni mi capita qualche volta di rispondere ancor prima che l'insegnante abbia finito la domanda.",
+"Quando osservo un quadro mi colpisce subito la visione d'insieme.",
+"Non occorre conoscere esattamente una regola per risolvere certi problemi.",
+"Penso sia inutile avere davanti schemi disegnati o brevi frasi riassuntive per ripassare la lezione.",
+"Durante l'intervallo preferisco riposarmi pensando da solo ai fatti miei.",
+"Quando l'argomento è troppo difficile, non mi impegno.",
+"Quando guardo una figura cerco di analizzare anche i dettagli.",
+"Spesso intuisco i concetti prima che mi vengano spiegati.",
+"Quando non ho studiato abbastanza, ne sono consapevole.",
+"Quando seguo una lezione cerco di avere un foglio per segnarvi le cose importanti.",
+"Mi piace parlare con i miei insegnanti anche di argomenti extrascolastici.",
+"Mi piace studiare con calma e non riesco a concentrarmi se mi mettono fretta.",
+"Mi piacciono i giochi con le parole (anagrammi, sciarade, inventare parole nuove).",
+"Penso di essere antipatico a molti compagni di classe.",
+"Se spiegano un argomento che mi interessa vorrei saperne di più.",
+"In alcune materie vado meno bene perché me le hanno spiegate male.",
+"Dopo un'interrogazione non riesco a capire come sono andato.",
+"Mentre l'insegnante parla, cerco di immaginare il contenuto del suo discorso.",
+"Mi sento soddisfatto quando seguo un programma ben definito.",
+"Se devo decidere fra varie alternative, preferisco procedere, sistematicamente, scartandole una a una.",
+"Quando studio non credo sia importante tener conto delle difficoltà del compito.",
+"Sono contento quando gli insegnanti mi chiamano per nome.",
+"Mi trovo meglio a studiare da solo.",
+"Se mi è andata male un'interrogazione capisco se è stato perché non conoscevo bene l'argomento o perché non mi è riuscito di esporlo adeguatamente.",
+"Non trovo mai il tempo per studiare quello che mi interessa.",
+"Durante l'esecuzione di un compito mi fermo per fare il punto della situazione.",
+"Mi è facile capire un argomento se l'insegnante prima me lo inquadra a grandi linee.",
+"Mi resta più in mente la parte scritta dei libri di testo che le figure.",
+"Durante la lezione faccio domande.",
+"Riesco a capire meglio una cosa se mi viene spiegata punto per punto.",
+"Quando non ricordo qualcosa che avevo studiato, cerco di capire per quali ragioni ho dimenticato.",
+"Sono contento quando gli insegnanti mi incoraggiano.",
+"Sono convinto che impegnandomi con tutte le mie forze prima o poi riuscirò a migliorare.",
+"Dopo un compito scritto capisco quasi sempre se sono andato bene o male.",
+"Mi piace discutere gli argomenti scolastici con i miei compagni.",
+"Anche se un argomento mi piace non lo approfondisco se gli insegnanti non me lo chiedono.",
+"Prima di rispondere mi piace considerare attentamente tutte le informazioni in mio possesso.",
+"Mi piacciono i libri di testo in cui ci sono tante figure.",
+"Per fare un ragionamento è importante tener conto del maggior numero di elementi possibili.",
+"Sono consapevole dei miei limiti e delle mie capacità.",
+"Trovo inutile prendere appunti a lezione.",
+"Ho molta difficoltà a studiare le materie insegnate da professori che mi risultano antipatici o troppo severi.",
+"Ho sempre avuto compagni di classe simpatici.",
+"Mi succede raramente di sfogliare il libro per vedere quali temi verranno affrontati nei mesi successivi.",
+"Di fronte a un problema penso al modo di risolverlo.",
+"In genere le valutazioni che mi danno gli insegnanti corrispondono a quelle che io stesso mi assegno.",
+"Comprendo meglio quando mi posso servire di schemi, grafici o tabelle.",
+"Mi è capitato più di una volta di prendere un brutto voto che non mi aspettavo.",
+"Nelle interrogazioni sono sempre fortunato.",
+"A volte faccio esercizi anche se non sono stati richiesti dall'insegnante.",
+"Vado d'accordo con la maggior parte dei miei compagni.",
+"Molto spesso faccio fatica a capirmi con gli insegnanti.",
+"Evito di fare domande perché temo di infastidire l'insegnante."
+];
+
+// ═══════════════════════════════════════════════════════════════
+// STATO APPLICAZIONE
+// ═══════════════════════════════════════════════════════════════
+let state = {
+  currentItem: 0,
+  answers: new Array(163).fill(null),
+  student: {},
+  currentPin: null,   // PIN attivo (se in pausa)
+  _resuming: false,
+};
+
+// ═══════════════════════════════════════════════════════════════
+// NAVIGAZIONE
+// ═══════════════════════════════════════════════════════════════
+function goTo(s) {
+  document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+  document.getElementById('screen-' + s).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════════════
+let _toastTimer;
+function toast(msg, type='') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (type ? ' ' + type : '');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// VALIDAZIONE ANAGRAFICA
+// ═══════════════════════════════════════════════════════════════
+function validateInfo() {
+  const ok = document.getElementById('f-nome').value.trim() &&
+             document.getElementById('f-cognome').value.trim() &&
+             document.getElementById('f-classe').value &&
+             document.getElementById('f-sede').value;
+  document.getElementById('btnStartQuiz').disabled = !ok;
+}
+['f-nome','f-cognome','f-classe','f-sede'].forEach(id => {
+  document.getElementById(id).addEventListener('input', validateInfo);
+  document.getElementById(id).addEventListener('change', validateInfo);
+});
+
+// ═══════════════════════════════════════════════════════════════
+// AVVIO / RIPRESA QUIZ
+// ═══════════════════════════════════════════════════════════════
+function startQuiz() {
+  state.student = {
+    nome:    document.getElementById('f-nome').value.trim(),
+    cognome: document.getElementById('f-cognome').value.trim(),
+    classe:  document.getElementById('f-classe').value,
+    sede:    document.getElementById('f-sede').value,
+    anno:    document.getElementById('f-anno').value,
+  };
+  if (!state._resuming) {
+    state.currentItem = 0;
+    state.answers = new Array(163).fill(null);
+    state.currentPin = null;
+  }
+  state._resuming = false;
+  document.getElementById('btnStartQuiz').textContent = 'Inizia il questionario \u203a';
+  document.getElementById('section-desc-info').textContent = 'Inserisci i tuoi dati prima di iniziare.';
+  goTo('quiz');
+  renderQ();
+}
+
+function backToInfo() {
+  const s = state.student;
+  if (s.nome)    document.getElementById('f-nome').value    = s.nome;
+  if (s.cognome) document.getElementById('f-cognome').value = s.cognome;
+  if (s.classe)  document.getElementById('f-classe').value  = s.classe;
+  if (s.sede)    document.getElementById('f-sede').value    = s.sede;
+  if (s.anno)    document.getElementById('f-anno').value    = s.anno;
+  document.getElementById('btnStartQuiz').disabled = false;
+  document.getElementById('btnStartQuiz').textContent = 'Continua il questionario \u203a';
+  state._resuming = true;
+  goTo('info');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RENDERING DOMANDA
+// ═══════════════════════════════════════════════════════════════
+function renderQ() {
+  const i = state.currentItem, n = ITEMS.length;
+  document.getElementById('qNum').textContent = 'Affermazione ' + (i+1) + ' di ' + n;
+  document.getElementById('qText').textContent = ITEMS[i];
+  document.getElementById('progressBar').style.width = ((i/n)*100) + '%';
+  document.getElementById('progressLabel').textContent = i + ' / ' + n + ' completate';
+  document.querySelectorAll('.opt-btn').forEach(b =>
+    b.classList.toggle('selected', parseInt(b.dataset.val) === state.answers[i]));
+  document.getElementById('btnBack').disabled = i === 0;
+  const isLast = i === n - 1;
+  const nb = document.getElementById('btnNext');
+  nb.textContent = isLast ? 'Invia \u203a' : 'Avanti \u203a';
+  nb.className   = 'btn-nav ' + (isLast ? 'submit-btn' : 'next');
+  nb.disabled = state.answers[i] === null;
+  const uan = state.answers.filter(a => a === null).length;
+  document.getElementById('skipNote').textContent = uan > 0 ? uan + ' domande ancora senza risposta' : '';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SELEZIONE RISPOSTA
+// ═══════════════════════════════════════════════════════════════
+function selectOpt(v) {
+  state.answers[state.currentItem] = v;
+  document.querySelectorAll('.opt-btn').forEach(b =>
+    b.classList.toggle('selected', parseInt(b.dataset.val) === v));
+  document.getElementById('btnNext').disabled = false;
+  setTimeout(() => {
+    if (state.currentItem < ITEMS.length - 1) navNext(); else renderQ();
+  }, 350);
+}
+function navNext() {
+  if (state.answers[state.currentItem] === null) return;
+  if (state.currentItem < ITEMS.length - 1) {
+    state.currentItem++; renderQ(); window.scrollTo(0,0);
+  } else submitQuiz();
+}
+function navBack() {
+  if (state.currentItem > 0) { state.currentItem--; renderQ(); window.scrollTo(0,0); }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PAUSA — salva sessione su Supabase
+// ═══════════════════════════════════════════════════════════════
+const PIN_CHARS = 'ABCDEFGHJKMNPQRSTUWXY3467';
+function genPin() {
+  let p = '';
+  for (let i=0; i<6; i++) p += PIN_CHARS[Math.floor(Math.random()*PIN_CHARS.length)];
+  return p;
+}
+
+async function showPause() {
+  const pct = Math.round((state.currentItem/163)*100);
+  document.getElementById('pauseProgressFill').style.width = pct + '%';
+  document.getElementById('pauseProgressLabel').textContent = state.currentItem + ' / 163';
+  document.getElementById('pauseStudentLabel').textContent =
+    (state.student.nome||'') + ' ' + (state.student.cognome||'') +
+    ' \u2014 ' + (state.student.classe||'') + '\u00aa (' + (state.student.sede||'') + ')';
+
+  // Mostra schermata subito con PIN in caricamento
+  document.getElementById('pinValue').textContent = '\u22ef';
+  goTo('pause');
+
+  const sessionData = {
+    nome:         state.student.nome,
+    cognome:      state.student.cognome,
+    classe:       state.student.classe,
+    sede:         state.student.sede,
+    anno:         state.student.anno,
+    current_item: state.currentItem,
+    answers:      state.answers,
+    updated_at:   new Date().toISOString(),
+  };
+
+  try {
+    let pin;
+    if (state.currentPin) {
+      // Aggiorna sessione esistente
+      pin = state.currentPin;
+      await sbFetch('sessions', 'PATCH', sessionData, 'pin=eq.' + pin);
+    } else {
+      // Nuova sessione
+      pin = genPin();
+      await sbFetch('sessions', 'POST', { ...sessionData, pin });
+      state.currentPin = pin;
+    }
+    document.getElementById('pinValue').textContent = pin;
+    toast('Progresso salvato \u2713', 'ok');
+  } catch(e) {
+    document.getElementById('pinValue').textContent = 'ERRORE';
+    toast('Errore di salvataggio: controlla la connessione', 'err');
+    console.error(e);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RIPRENDI — carica sessione da Supabase
+// ═══════════════════════════════════════════════════════════════
+async function resumeFromCode() {
+  const pin = document.getElementById('resumeCodeInput').value.trim().toUpperCase();
+  const errEl = document.getElementById('resumeError');
+  errEl.classList.remove('show');
+
+  if (pin.length !== 6) {
+    errEl.textContent = 'Il codice deve essere di 6 caratteri.';
+    errEl.classList.add('show'); return;
+  }
+
+  try {
+    toast('Ricerca in corso\u2026');
+    const rows = await sbFetch('sessions', 'GET', null, 'pin=eq.' + pin + '&select=*');
+    if (!rows || rows.length === 0) {
+      errEl.textContent = 'Codice non trovato. Controlla le lettere e riprova.';
+      errEl.classList.add('show'); return;
+    }
+    const d = rows[0];
+    state.student      = { nome:d.nome, cognome:d.cognome, classe:d.classe, sede:d.sede, anno:d.anno };
+    state.currentItem  = d.current_item || 0;
+    state.answers      = d.answers || new Array(163).fill(null);
+    state.currentPin   = pin;
+    state._resuming    = true;
+
+    // Ripristina anagrafica
+    document.getElementById('f-nome').value    = d.nome || '';
+    document.getElementById('f-cognome').value = d.cognome || '';
+    document.getElementById('f-classe').value  = d.classe || '';
+    document.getElementById('f-sede').value    = d.sede || '';
+    document.getElementById('f-anno').value    = d.anno || '2025/26';
+    document.getElementById('btnStartQuiz').disabled = false;
+    document.getElementById('btnStartQuiz').textContent =
+      'Continua da domanda ' + (state.currentItem + 1) + ' \u203a';
+    document.getElementById('section-desc-info').textContent =
+      'Progresso recuperato: ' + state.currentItem + ' domande gi\u00e0 completate.';
+    document.getElementById('resumeCodeInput').value = '';
+    goTo('quiz'); renderQ();
+    toast('Ripresa dalla domanda ' + (state.currentItem+1), 'ok');
+  } catch(e) {
+    errEl.textContent = 'Errore di connessione. Verifica la rete e riprova.';
+    errEl.classList.add('show');
+    console.error(e);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SUBMIT — invia risposte su Supabase
+// ═══════════════════════════════════════════════════════════════
+async function submitQuiz() {
+  const uan = state.answers.filter(a => a === null).length;
+  if (uan > 0 && !confirm('Ci sono ' + uan + ' domande senza risposta. Vuoi inviare comunque?')) return;
+  goTo('sending');
+
+  const payload = {
+    nome:         state.student.nome,
+    cognome:      state.student.cognome,
+    classe:       state.student.classe,
+    sede:         state.student.sede,
+    anno:         state.student.anno,
+    submitted_at: new Date().toISOString(),
+  };
+  state.answers.forEach((a, i) => { payload['i' + (i+1)] = a; });
+
+  try {
+    await sbFetch('responses', 'POST', payload);
+    // Elimina la sessione di pausa se esisteva
+    if (state.currentPin) {
+      await sbFetch('sessions', 'DELETE', null, 'pin=eq.' + state.currentPin);
+    }
+    showThanks(true);
+  } catch(e) {
+    console.error(e);
+    showThanks(false, e.message);
+  }
+}
+
+function showThanks(ok, errMsg) {
+  const s = state.student;
+  document.getElementById('thanksName').textContent =
+    s.nome + ' ' + s.cognome + ' \u2014 ' + s.classe + '\u00aa (' + s.sede + ')';
+  const warnEl = document.getElementById('thanksWarn');
+  if (!ok) {
+    warnEl.textContent = '\u26a0 Le risposte non sono state salvate a causa di un errore di rete. Riprova o contatta il docente.';
+    warnEl.classList.add('show');
+  } else {
+    warnEl.classList.remove('show');
+  }
+  goTo('thanks');
+}
+
+function resetForm() {
+  ['f-nome','f-cognome'].forEach(id => document.getElementById(id).value = '');
+  ['f-classe','f-sede'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('btnStartQuiz').disabled = true;
+  document.getElementById('btnStartQuiz').textContent = 'Inizia il questionario \u203a';
+  document.getElementById('section-desc-info').textContent = 'Inserisci i tuoi dati prima di iniziare.';
+  state = { currentItem:0, answers:new Array(163).fill(null), student:{}, currentPin:null, _resuming:false };
+  goTo('start');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PANNELLO ADMIN
+// ═══════════════════════════════════════════════════════════════
+function saveSupabaseConfig() {
+  const url = document.getElementById('adminSbUrl').value.trim();
+  const key = document.getElementById('adminSbKey').value.trim();
+  if (url) localStorage.setItem('qms_sb_url', url);
+  if (key) localStorage.setItem('qms_sb_key', key);
+  toast('Configurazione salvata \u2713', 'ok');
+}
+
+async function adminLoadStats() {
+  try {
+    const responses = await sbFetch('responses', 'GET', null, 'select=id');
+    const sessions  = await sbFetch('sessions',  'GET', null, 'select=id');
+    document.getElementById('adminResponseCount').textContent = responses.length;
+    document.getElementById('adminSessionCount').textContent  = sessions.length;
+    const saved = getSB();
+    if (saved.url) document.getElementById('adminSbUrl').value = saved.url;
+    if (saved.key) document.getElementById('adminSbKey').value = saved.key;
+  } catch(e) { toast('Errore: ' + e.message, 'err'); }
+}
+
+async function adminExportCSV() {
+  try {
+    toast('Download in corso\u2026');
+    const rows = await sbFetch('responses', 'GET', null, 'select=*&order=submitted_at.asc');
+    if (!rows.length) { toast('Nessuna risposta nel database', 'err'); return; }
+    const cols = ['submitted_at','nome','cognome','classe','sede','anno',
+      ...Array.from({length:163}, (_,i) => 'i'+(i+1))];
+    const csv = [cols.join(','),
+      ...rows.map(r => cols.map(c => JSON.stringify(r[c] ?? '')).join(','))
+    ].join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8;'}));
+    a.download = 'QMS_risposte_' + new Date().toISOString().slice(0,10) + '.csv';
+    a.click();
+    toast('Export completato \u2713', 'ok');
+  } catch(e) { toast('Errore export: ' + e.message, 'err'); }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+window.addEventListener('load', () => {
+  if (window.location.hash === '#admin') {
+    goTo('admin'); adminLoadStats();
+  }
+});
+window.addEventListener('hashchange', () => {
+  if (window.location.hash === '#admin') { goTo('admin'); adminLoadStats(); }
+});
+</script>
+</body>
+</html>
