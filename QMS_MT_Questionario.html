@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>QMS-MT — Questionario Metacognitivo</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Serif+Display&display=swap" rel="stylesheet">
 <style>
@@ -369,7 +369,8 @@ function db() {
   if (_sb) return _sb;
   const url = localStorage.getItem('qms_sb_url') || CONFIG.supabaseUrl;
   const key = localStorage.getItem('qms_sb_key') || CONFIG.supabaseKey;
-  if (!url || !key) throw new Error('Supabase non configurato');
+  if (!url || !key) throw new Error('Supabase non configurato: apri il pannello #admin e inserisci le credenziali.');
+  if (typeof supabase === 'undefined') throw new Error('Libreria Supabase non caricata: verifica la connessione internet.');
   _sb = supabase.createClient(url, key);
   return _sb;
 }
