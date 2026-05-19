@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>QMS-MT — Questionario Metacognitivo</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Serif+Display&display=swap" rel="stylesheet">
 <style>
@@ -357,40 +358,20 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);min-height:100vh;colo
 <script>
 // ═══════════════════════════════════════════════════════════════
 // CONFIGURAZIONE SUPABASE
-// Questi valori vengono impostati dal pannello #admin la prima
-// volta e salvati nel browser. In alternativa incollarli qui:
 // ═══════════════════════════════════════════════════════════════
 const CONFIG = {
   supabaseUrl: 'https://kutlkzvymtnommxgqpgw.supabase.co',
   supabaseKey: 'sb_publishable_U8-xDR2R8xuMl7Y-HAm0Kg_D7w7GoKd',
 };
 
-function getSB() {
-  return {
-    url: localStorage.getItem('qms_sb_url') || CONFIG.supabaseUrl,
-    key: localStorage.getItem('qms_sb_key') || CONFIG.supabaseKey,
-  };
-}
-
-async function sbFetch(table, method='GET', body=null, filter='') {
-  const sb = getSB();
-  if (!sb.url || !sb.key) throw new Error('Supabase non configurato');
-  const headers = {
-    'apikey': sb.key,
-    'Authorization': 'Bearer ' + sb.key,
-    'Content-Type': 'application/json',
-  };
-  if (method === 'POST') headers['Prefer'] = 'return=representation';
-  const opts = { method, headers };
-  if (body) opts.body = JSON.stringify(body);
-  const r = await fetch(sb.url + '/rest/v1/' + table + (filter ? '?' + filter : ''), opts);
-  if (!r.ok) {
-    const txt = await r.text();
-    throw new Error(txt);
-  }
-  const ct = r.headers.get('content-type') || '';
-  if (ct.includes('json')) return r.json();
-  return null;
+let _sb = null;
+function db() {
+  if (_sb) return _sb;
+  const url = localStorage.getItem('qms_sb_url') || CONFIG.supabaseUrl;
+  const key = localStorage.getItem('qms_sb_key') || CONFIG.supabaseKey;
+  if (!url || !key) throw new Error('Supabase non configurato');
+  _sb = supabase.createClient(url, key);
+  return _sb;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -563,13 +544,13 @@ const ITEMS = [
 ];
 
 // ═══════════════════════════════════════════════════════════════
-// STATO APPLICAZIONE
+// STATO
 // ═══════════════════════════════════════════════════════════════
 let state = {
   currentItem: 0,
   answers: new Array(163).fill(null),
   student: {},
-  currentPin: null,   // PIN attivo (se in pausa)
+  currentPin: null,
   _resuming: false,
 };
 
@@ -591,7 +572,7 @@ function toast(msg, type='') {
   el.textContent = msg;
   el.className = 'toast show' + (type ? ' ' + type : '');
   clearTimeout(_toastTimer);
-  _toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+  _toastTimer = setTimeout(() => el.classList.remove('show'), 3500);
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -626,7 +607,7 @@ function startQuiz() {
     state.currentPin = null;
   }
   state._resuming = false;
-  document.getElementById('btnStartQuiz').textContent = 'Inizia il questionario \u203a';
+  document.getElementById('btnStartQuiz').textContent = 'Inizia il questionario ›';
   document.getElementById('section-desc-info').textContent = 'Inserisci i tuoi dati prima di iniziare.';
   goTo('quiz');
   renderQ();
@@ -640,7 +621,7 @@ function backToInfo() {
   if (s.sede)    document.getElementById('f-sede').value    = s.sede;
   if (s.anno)    document.getElementById('f-anno').value    = s.anno;
   document.getElementById('btnStartQuiz').disabled = false;
-  document.getElementById('btnStartQuiz').textContent = 'Continua il questionario \u203a';
+  document.getElementById('btnStartQuiz').textContent = 'Continua il questionario ›';
   state._resuming = true;
   goTo('info');
 }
@@ -659,7 +640,7 @@ function renderQ() {
   document.getElementById('btnBack').disabled = i === 0;
   const isLast = i === n - 1;
   const nb = document.getElementById('btnNext');
-  nb.textContent = isLast ? 'Invia \u203a' : 'Avanti \u203a';
+  nb.textContent = isLast ? 'Invia ›' : 'Avanti ›';
   nb.className   = 'btn-nav ' + (isLast ? 'submit-btn' : 'next');
   nb.disabled = state.answers[i] === null;
   const uan = state.answers.filter(a => a === null).length;
@@ -704,10 +685,8 @@ async function showPause() {
   document.getElementById('pauseProgressLabel').textContent = state.currentItem + ' / 163';
   document.getElementById('pauseStudentLabel').textContent =
     (state.student.nome||'') + ' ' + (state.student.cognome||'') +
-    ' \u2014 ' + (state.student.classe||'') + '\u00aa (' + (state.student.sede||'') + ')';
-
-  // Mostra schermata subito con PIN in caricamento
-  document.getElementById('pinValue').textContent = '\u22ef';
+    ' — ' + (state.student.classe||'') + 'ª (' + (state.student.sede||'') + ')';
+  document.getElementById('pinValue').textContent = '⋯';
   goTo('pause');
 
   const sessionData = {
@@ -722,22 +701,23 @@ async function showPause() {
   };
 
   try {
+    const sb = db();
     let pin;
     if (state.currentPin) {
-      // Aggiorna sessione esistente
       pin = state.currentPin;
-      await sbFetch('sessions', 'PATCH', sessionData, 'pin=eq.' + pin);
+      const { error } = await sb.from('sessions').update(sessionData).eq('pin', pin);
+      if (error) throw new Error(error.message);
     } else {
-      // Nuova sessione
       pin = genPin();
-      await sbFetch('sessions', 'POST', { ...sessionData, pin });
+      const { error } = await sb.from('sessions').insert({ ...sessionData, pin });
+      if (error) throw new Error(error.message);
       state.currentPin = pin;
     }
     document.getElementById('pinValue').textContent = pin;
-    toast('Progresso salvato \u2713', 'ok');
+    toast('Progresso salvato ✓', 'ok');
   } catch(e) {
     document.getElementById('pinValue').textContent = 'ERRORE';
-    toast('Errore di salvataggio: controlla la connessione', 'err');
+    toast('Errore: ' + e.message, 'err');
     console.error(e);
   }
 }
@@ -749,15 +729,15 @@ async function resumeFromCode() {
   const pin = document.getElementById('resumeCodeInput').value.trim().toUpperCase();
   const errEl = document.getElementById('resumeError');
   errEl.classList.remove('show');
-
   if (pin.length !== 6) {
     errEl.textContent = 'Il codice deve essere di 6 caratteri.';
     errEl.classList.add('show'); return;
   }
-
   try {
-    toast('Ricerca in corso\u2026');
-    const rows = await sbFetch('sessions', 'GET', null, 'pin=eq.' + pin + '&select=*');
+    toast('Ricerca in corso…');
+    const sb = db();
+    const { data: rows, error } = await sb.from('sessions').select('*').eq('pin', pin);
+    if (error) throw new Error(error.message);
     if (!rows || rows.length === 0) {
       errEl.textContent = 'Codice non trovato. Controlla le lettere e riprova.';
       errEl.classList.add('show'); return;
@@ -768,8 +748,6 @@ async function resumeFromCode() {
     state.answers      = d.answers || new Array(163).fill(null);
     state.currentPin   = pin;
     state._resuming    = true;
-
-    // Ripristina anagrafica
     document.getElementById('f-nome').value    = d.nome || '';
     document.getElementById('f-cognome').value = d.cognome || '';
     document.getElementById('f-classe').value  = d.classe || '';
@@ -777,14 +755,14 @@ async function resumeFromCode() {
     document.getElementById('f-anno').value    = d.anno || '2025/26';
     document.getElementById('btnStartQuiz').disabled = false;
     document.getElementById('btnStartQuiz').textContent =
-      'Continua da domanda ' + (state.currentItem + 1) + ' \u203a';
+      'Continua da domanda ' + (state.currentItem + 1) + ' ›';
     document.getElementById('section-desc-info').textContent =
-      'Progresso recuperato: ' + state.currentItem + ' domande gi\u00e0 completate.';
+      'Progresso recuperato: ' + state.currentItem + ' domande già completate.';
     document.getElementById('resumeCodeInput').value = '';
     goTo('quiz'); renderQ();
     toast('Ripresa dalla domanda ' + (state.currentItem+1), 'ok');
   } catch(e) {
-    errEl.textContent = 'Errore di connessione. Verifica la rete e riprova.';
+    errEl.textContent = 'Errore di connessione: ' + e.message;
     errEl.classList.add('show');
     console.error(e);
   }
@@ -797,7 +775,6 @@ async function submitQuiz() {
   const uan = state.answers.filter(a => a === null).length;
   if (uan > 0 && !confirm('Ci sono ' + uan + ' domande senza risposta. Vuoi inviare comunque?')) return;
   goTo('sending');
-
   const payload = {
     nome:         state.student.nome,
     cognome:      state.student.cognome,
@@ -807,16 +784,16 @@ async function submitQuiz() {
     submitted_at: new Date().toISOString(),
   };
   state.answers.forEach((a, i) => { payload['i' + (i+1)] = a; });
-
   try {
-    await sbFetch('responses', 'POST', payload);
-    // Elimina la sessione di pausa se esisteva
+    const sb = db();
+    const { error } = await sb.from('responses').insert(payload);
+    if (error) throw new Error(error.message);
     if (state.currentPin) {
-      await sbFetch('sessions', 'DELETE', null, 'pin=eq.' + state.currentPin);
+      await sb.from('sessions').delete().eq('pin', state.currentPin);
     }
     showThanks(true);
   } catch(e) {
-    console.error(e);
+    console.error('Errore invio:', e);
     showThanks(false, e.message);
   }
 }
@@ -824,10 +801,10 @@ async function submitQuiz() {
 function showThanks(ok, errMsg) {
   const s = state.student;
   document.getElementById('thanksName').textContent =
-    s.nome + ' ' + s.cognome + ' \u2014 ' + s.classe + '\u00aa (' + s.sede + ')';
+    s.nome + ' ' + s.cognome + ' — ' + s.classe + 'ª (' + s.sede + ')';
   const warnEl = document.getElementById('thanksWarn');
   if (!ok) {
-    warnEl.textContent = '\u26a0 Le risposte non sono state salvate a causa di un errore di rete. Riprova o contatta il docente.';
+    warnEl.textContent = '⚠ Errore nel salvataggio: ' + (errMsg||'connessione assente') + '. Contatta il docente.';
     warnEl.classList.add('show');
   } else {
     warnEl.classList.remove('show');
@@ -839,7 +816,7 @@ function resetForm() {
   ['f-nome','f-cognome'].forEach(id => document.getElementById(id).value = '');
   ['f-classe','f-sede'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('btnStartQuiz').disabled = true;
-  document.getElementById('btnStartQuiz').textContent = 'Inizia il questionario \u203a';
+  document.getElementById('btnStartQuiz').textContent = 'Inizia il questionario ›';
   document.getElementById('section-desc-info').textContent = 'Inserisci i tuoi dati prima di iniziare.';
   state = { currentItem:0, answers:new Array(163).fill(null), student:{}, currentPin:null, _resuming:false };
   goTo('start');
@@ -853,36 +830,42 @@ function saveSupabaseConfig() {
   const key = document.getElementById('adminSbKey').value.trim();
   if (url) localStorage.setItem('qms_sb_url', url);
   if (key) localStorage.setItem('qms_sb_key', key);
-  toast('Configurazione salvata \u2713', 'ok');
+  _sb = null;
+  toast('Configurazione salvata ✓', 'ok');
 }
 
 async function adminLoadStats() {
   try {
-    const responses = await sbFetch('responses', 'GET', null, 'select=id');
-    const sessions  = await sbFetch('sessions',  'GET', null, 'select=id');
-    document.getElementById('adminResponseCount').textContent = responses.length;
-    document.getElementById('adminSessionCount').textContent  = sessions.length;
-    const saved = getSB();
-    if (saved.url) document.getElementById('adminSbUrl').value = saved.url;
-    if (saved.key) document.getElementById('adminSbKey').value = saved.key;
+    const sb = db();
+    const { count: rc } = await sb.from('responses').select('*', { count:'exact', head:true });
+    const { count: sc } = await sb.from('sessions').select('*',  { count:'exact', head:true });
+    document.getElementById('adminResponseCount').textContent = rc ?? 0;
+    document.getElementById('adminSessionCount').textContent  = sc ?? 0;
+    const url = localStorage.getItem('qms_sb_url') || CONFIG.supabaseUrl;
+    const key = localStorage.getItem('qms_sb_key') || CONFIG.supabaseKey;
+    if (url) document.getElementById('adminSbUrl').value = url;
+    if (key) document.getElementById('adminSbKey').value = key;
   } catch(e) { toast('Errore: ' + e.message, 'err'); }
 }
 
 async function adminExportCSV() {
   try {
-    toast('Download in corso\u2026');
-    const rows = await sbFetch('responses', 'GET', null, 'select=*&order=submitted_at.asc');
-    if (!rows.length) { toast('Nessuna risposta nel database', 'err'); return; }
+    toast('Download in corso…');
+    const sb = db();
+    const { data: rows, error } = await sb.from('responses').select('*').order('submitted_at', { ascending: true });
+    if (error) throw new Error(error.message);
+    if (!rows || !rows.length) { toast('Nessuna risposta nel database', 'err'); return; }
     const cols = ['submitted_at','nome','cognome','classe','sede','anno',
       ...Array.from({length:163}, (_,i) => 'i'+(i+1))];
     const csv = [cols.join(','),
-      ...rows.map(r => cols.map(c => JSON.stringify(r[c] ?? '')).join(','))
-    ].join('\n');
+      ...rows.map(r => cols.map(col => JSON.stringify(r[col] ?? '')).join(','))
+    ].join('
+');
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8;'}));
+    a.href = URL.createObjectURL(new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8;'}));
     a.download = 'QMS_risposte_' + new Date().toISOString().slice(0,10) + '.csv';
     a.click();
-    toast('Export completato \u2713', 'ok');
+    toast('Export completato ✓', 'ok');
   } catch(e) { toast('Errore export: ' + e.message, 'err'); }
 }
 
@@ -890,9 +873,7 @@ async function adminExportCSV() {
 // INIT
 // ═══════════════════════════════════════════════════════════════
 window.addEventListener('load', () => {
-  if (window.location.hash === '#admin') {
-    goTo('admin'); adminLoadStats();
-  }
+  if (window.location.hash === '#admin') { goTo('admin'); adminLoadStats(); }
 });
 window.addEventListener('hashchange', () => {
   if (window.location.hash === '#admin') { goTo('admin'); adminLoadStats(); }
